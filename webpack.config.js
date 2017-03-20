@@ -4,10 +4,10 @@ module.exports = {
     context: __dirname,
     entry: [
     'babel-polyfill',
-    './src/index.js',
+    './client/src/index.js',
     ],
     output: {
-        path: path.join(__dirname, 'static', 'dist'),
+        path: path.join(__dirname, 'client/static', 'dist'),
         filename: 'bundle.js',
         publicPath: '/static/'
     },    
