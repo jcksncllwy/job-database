@@ -12698,7 +12698,10 @@ var _app2 = _interopRequireDefault(_app);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-(0, _reactDom.render)(_react2.default.createElement(_app2.default, null), document.getElementById('root')); /* global window, document */
+console.log(document.getElementById('react-root')); /* global window, document */
+
+
+(0, _reactDom.render)(_react2.default.createElement(_app2.default, null), document.getElementById('react-root'));
 
 /***/ }),
 /* 195 */
