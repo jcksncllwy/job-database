@@ -1,17 +1,16 @@
 {
-  "name": "node-js-getting-started",
-  "version": "0.2.5",
-  "description": "A sample Node.js app using Express 4",
+  "name": "job-database",
+  "version": "0.0.1",
+  "description": "A database and visualization tool for exploring roles in tech",
   "engines": {
-    "node": "5.9.1"
+    "node": "6.10.0"
   },
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
-  "dependencies": {
-    "ejs": "2.4.1",
-    "express": "4.13.3"
+  "dependencies": {    
+    "express": "^4.15.2"
   },
   "repository": {
     "type": "git",
