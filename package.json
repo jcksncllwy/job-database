@@ -10,8 +10,9 @@
     "start": "node server.js",
     "quick": "./node_modules/webpack/bin/webpack.js --config webpack.config.js && node server.js"
   },
-  "dependencies": {    
-    "express": "^4.15.2"
+  "dependencies": {
+    "express": "^4.15.2",
+    "react": "^15.4.2"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.2",
