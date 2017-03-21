@@ -18712,7 +18712,7 @@ exports = module.exports = __webpack_require__(405)();
 
 
 // module
-exports.push([module.i, ".edge {\n  fill: none;\n  stroke: #000;\n  stroke-width: 1.5px; }\n\n.node-container {\n  width: 50px;\n  height: 50px; }\n  .node-container .node {\n    fill: #ccc;\n    stroke: none;\n    stroke-width: 1.5px; }\n  .node-container .details {\n    visibility: hidden; }\n    .node-container .details span {\n      font-size: 0.8em;\n      margin-left: 10px;\n      background-color: rgba(200, 200, 200, 0.5); }\n  .node-container.highlight .node {\n    fill: #fff;\n    stroke: #000; }\n  .node-container.highlight .details {\n    visibility: visible; }\n\ntext {\n  font: 10px sans-serif;\n  pointer-events: none;\n  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }\n", ""]);
+exports.push([module.i, "#defaultCanvas0 {\n  display: none; }\n\n.edge {\n  fill: none;\n  stroke: #000;\n  stroke-width: 1.5px; }\n\n.node-container {\n  width: 50px;\n  height: 50px; }\n  .node-container .node {\n    fill: #ccc;\n    stroke: none;\n    stroke-width: 1.5px; }\n  .node-container .details {\n    visibility: hidden; }\n    .node-container .details span {\n      font-size: 0.8em;\n      margin-left: 10px;\n      background-color: rgba(200, 200, 200, 0.5); }\n  .node-container.highlight .node {\n    fill: #fff;\n    stroke: #000; }\n  .node-container.highlight .details {\n    visibility: visible; }\n\ntext {\n  font: 10px sans-serif;\n  pointer-events: none;\n  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }\n", ""]);
 
 // exports
 
