@@ -14286,6 +14286,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var dataAPIEndpoint = '/api/data';
 
+new p5();
+
 var App = function (_Component) {
 	_inherits(App, _Component);
 
@@ -14300,9 +14302,25 @@ var App = function (_Component) {
 
 		_this.getData = function () {
 			_axios2.default.get(dataAPIEndpoint).then(function (response) {
-				_this.setState({ data: response.data });
+				var data = _this.preprocessData(response.data);
+				_this.setState({ data: data });
 			}).catch(function (error) {
 				console.log('API call fucked up: ', error);
+			});
+		};
+
+		_this.preprocessData = function (data) {
+			var colors = {};
+			return $.map(data, function (datum) {
+				$.each(datum.tags, function (i, tag) {
+					var name = tag.trim();
+					datum.tags[i] = { name: name };
+					if (!colors[name]) {
+						colors[name] = 'rgba(' + Math.floor(random(255)) + ', ' + Math.floor(random(255)) + ', ' + Math.floor(random(255)) + ', 1)';
+					}
+					datum.tags[i].color = colors[name];
+				});
+				return datum;
 			});
 		};
 
@@ -14319,7 +14337,7 @@ var App = function (_Component) {
 						var iTag = iData.tags[q];
 						for (var p in jData.tags) {
 							var jTag = jData.tags[p];
-							if (iTag == jTag) {
+							if (iTag.name == jTag.name) {
 								links.push({
 									"source": Number.parseInt(i),
 									"target": Number.parseInt(j),
@@ -14347,7 +14365,9 @@ var App = function (_Component) {
 
 			var force = d3.layout.force().nodes(nodes).links(links).size([width, height]).linkDistance(200).charge(-500).on("tick", tick).start();
 
-			var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
+			var svg = d3.select("body").append("svg").attr("xmlns", "http://www.w3.org/2000/svg").attr("width", width).attr("height", height);
+
+			svg.append("foreignObject").attr("width", "100%").attr("height", "100%");
 
 			var emptyPathSelection = svg.append("g").attr("id", "edges").selectAll("path");
 
@@ -14356,6 +14376,8 @@ var App = function (_Component) {
 			//append essentially creates a path object for each link
 			var edges = virtualSelection.append("path").attr("class", function (edge) {
 				return "edge " + edge.type;
+			}).attr("style", function (edge) {
+				return 'stroke:' + edge.tag.color;
 			});
 
 			//Render Nodes
@@ -14368,17 +14390,30 @@ var App = function (_Component) {
 
 			var nodeElements = nodeContainers.append("circle").attr("class", "node").attr("r", 12).call(force.drag);
 
-			var text = nodeContainers.append("text").attr("x", 20).attr("y", ".31em").attr("class", function (d) {
+			var labels = nodeContainers.append("text").attr("x", 20).attr("y", ".31em").attr("class", function (d) {
 				return "node-label " + d.type;
 			}).text(function (d) {
-				return d.name + ": " + d.tags.toString();
+				return d.name;
 			});
+
+			var details = nodeContainers.append("foreignObject").attr("x", 10).attr("y", 10).attr("width", 200).attr("height", 20).attr("class", "details");
+
+			var detailsInner = details.append(function (d) {
+				var container = $("<div></div>");
+				$.each(d.tags, function (i, tag) {
+					return container.append($('\n\t\t    \t\t<span style="background-color:' + tag.color + '">' + tag.name + '</span>\n\t\t    \t'));
+				});
+				container.attr("xmlns", "http://www.w3.org/1999/xhtml");
+				return container[0];
+			}).attr("x", 0).attr("y", 0);
 
 			// All positions are encoded in the tick's transform
 			function tick() {
 				edges.attr("d", linkArc);
 				nodeElements.attr("transform", transform);
-				text.attr("transform", transform);
+				labels.attr("transform", transform);
+				details.attr("transform", transform);
+				detailsInner.attr("transform", transform);
 			}
 
 			function linkArc(d) {
@@ -18677,7 +18712,7 @@ exports = module.exports = __webpack_require__(405)();
 
 
 // module
-exports.push([module.i, ".edge {\n  fill: none;\n  stroke: #000;\n  stroke-width: 1.5px; }\n\n.node-container {\n  width: 50px;\n  height: 50px; }\n  .node-container .node {\n    fill: #ccc;\n    stroke: none;\n    stroke-width: 1.5px; }\n  .node-container .node-label {\n    visibility: hidden; }\n  .node-container.highlight .node {\n    fill: #fff;\n    stroke: #000; }\n  .node-container.highlight .node-label {\n    visibility: visible; }\n\ntext {\n  font: 10px sans-serif;\n  pointer-events: none;\n  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }\n", ""]);
+exports.push([module.i, ".edge {\n  fill: none;\n  stroke: #000;\n  stroke-width: 1.5px; }\n\n.node-container {\n  width: 50px;\n  height: 50px; }\n  .node-container .node {\n    fill: #ccc;\n    stroke: none;\n    stroke-width: 1.5px; }\n  .node-container .details {\n    visibility: hidden; }\n    .node-container .details span {\n      font-size: 0.8em;\n      margin-left: 10px;\n      background-color: rgba(200, 200, 200, 0.5); }\n  .node-container.highlight .node {\n    fill: #fff;\n    stroke: #000; }\n  .node-container.highlight .details {\n    visibility: visible; }\n\ntext {\n  font: 10px sans-serif;\n  pointer-events: none;\n  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }\n", ""]);
 
 // exports
 

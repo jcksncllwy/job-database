@@ -13,22 +13,27 @@
 		  fill: #ccc;
 		  stroke: none;
 		  stroke-width: 1.5px;
-		}
+		}	
 
-		.node-label {
+		.details{
 			visibility: hidden;
-		}
+			span{
+				font-size: 0.8em;
+				margin-left: 10px;
+				background-color: rgba(200,200,200,0.5)
+			}
+		}	
 
 		&.highlight{
 			.node{
 				fill: #fff;
 		  		stroke: #000;
 			}
-			.node-label{
+			.details{
 				visibility: visible;
-			}
+			}			
 		}
-	}
+	}	
 
 	
 

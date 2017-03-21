@@ -6,6 +6,8 @@ import styles from 'styles.scss'
 
 const dataAPIEndpoint = '/api/data'
 
+new p5()
+
 export default class App extends Component {
 	constructor(props) {
 		super(props)
@@ -14,14 +16,30 @@ export default class App extends Component {
 
 	componentDidMount = () => {
 		this.getData()
-	}
+	}	
 
 	getData = () => {
 		axios.get(dataAPIEndpoint).then((response)=>{
-			this.setState({data: response.data})
+			let data = this.preprocessData(response.data)
+			this.setState({data})
 	    }).catch((error)=>{
 	    	console.log('API call fucked up: ', error)
 	    });
+	}
+
+	preprocessData = (data) => {
+		var colors = {}
+		return $.map(data, (datum)=>{
+			$.each(datum.tags, (i,tag)=>{
+				let name = tag.trim()
+				datum.tags[i] = {name}
+				if(!colors[name]){
+					colors[name] = `rgba(${Math.floor(random(255))}, ${Math.floor(random(255))}, ${Math.floor(random(255))}, 1)`
+				}
+				datum.tags[i].color = colors[name]
+			})
+			return datum
+		})
 	}
 
 	getTagLinks = (data) => {
@@ -37,7 +55,7 @@ export default class App extends Component {
 					var iTag = iData.tags[q];
 					for(var p in jData.tags){
 						var jTag = jData.tags[p];
-						if(iTag == jTag){
+						if(iTag.name == jTag.name){
 							links.push({
 								"source": Number.parseInt(i),
 								"target": Number.parseInt(j),
@@ -71,8 +89,15 @@ export default class App extends Component {
 		    .start()
 
 		let svg = d3.select("body").append("svg")
+			.attr("xmlns", "http://www.w3.org/2000/svg")
 		    .attr("width", width)
 		    .attr("height", height)
+
+		    
+		svg.append("foreignObject")
+		   .attr("width", "100%")
+		   .attr("height", "100%")		   
+		   
 
 		let emptyPathSelection = svg.append("g").attr("id", "edges").selectAll("path")
 
@@ -81,6 +106,7 @@ export default class App extends Component {
 		//append essentially creates a path object for each link
 		let edges = virtualSelection.append("path")
 		    .attr("class", function(edge) { return "edge " + edge.type; })
+		    .attr("style", function(edge) { return `stroke:${edge.tag.color}`})
 
 		//Render Nodes
 		let nodesContainer = svg.append("g").attr("id", "nodes")
@@ -99,17 +125,37 @@ export default class App extends Component {
 		    .attr("r", 12)
 		    .call(force.drag)
 
-		let text = nodeContainers.append("text")
+		let labels = nodeContainers.append("text")
 		    .attr("x", 20)
 		    .attr("y", ".31em")
 		    .attr("class", function(d) { return "node-label " + d.type; })
-		    .text(function(d) { return d.name+": "+d.tags.toString() })
+		    .text(function(d) { return d.name })
+
+		let details = nodeContainers.append("foreignObject")
+			.attr("x", 10)
+		    .attr("y", 10)
+		    .attr("width", 200)
+		    .attr("height", 20)
+		    .attr("class", "details")
+
+		let detailsInner = details.append(function(d){	
+		    	let container = $("<div></div>")
+		    	$.each(d.tags, (i,tag)=>container.append($(`
+		    		<span style="background-color:${tag.color}">${tag.name}</span>
+		    	`)) )
+		    	container.attr("xmlns","http://www.w3.org/1999/xhtml")
+		    	return container[0]
+		    })
+			.attr("x", 0)
+		    .attr("y", 0)
 
 		// All positions are encoded in the tick's transform
 		function tick() {
 		  edges.attr("d", linkArc)
 		  nodeElements.attr("transform", transform)
-		  text.attr("transform", transform)
+		  labels.attr("transform", transform)
+		  details.attr("transform", transform)
+		  detailsInner.attr("transform", transform)
 		}
 
 		function linkArc(d) {		  
