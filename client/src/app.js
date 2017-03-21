@@ -134,14 +134,14 @@ export default class App extends Component {
 		let details = nodeContainers.append("foreignObject")
 			.attr("x", 10)
 		    .attr("y", 10)
-		    .attr("width", 200)
-		    .attr("height", 20)
+		    .attr("width", 500)
+		    .attr("height", 50)
 		    .attr("class", "details")
 
 		let detailsInner = details.append(function(d){	
 		    	let container = $("<div></div>")
 		    	$.each(d.tags, (i,tag)=>container.append($(`
-		    		<span style="background-color:${tag.color}">${tag.name}</span>
+		    		<span class="tag-container" style="background-color:${tag.color}"><span>${tag.name}</span></span>
 		    	`)) )
 		    	container.attr("xmlns","http://www.w3.org/1999/xhtml")
 		    	return container[0]
