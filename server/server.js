@@ -13,18 +13,20 @@ app.set('port', (process.env.PORT || 5000))
 
 app.use(bodyParser.json())
 
-var webpackDevMiddleware = require("webpack-dev-middleware"),
-	webpack = require("webpack"),
-	webpackConfig = require("../webpack.config.js")
+if(process.env.NODE_ENV=='development'){
+	var webpackDevMiddleware = require("webpack-dev-middleware"),
+		webpack = require("webpack"),
+		webpackConfig = require("../webpack.config.js")
 
-var compiler = webpack(webpackConfig)
+	var compiler = webpack(webpackConfig)
 
-app = app.use(webpackDevMiddleware(compiler, {
-  publicPath: webpackConfig.output.publicPath,
-  watchOptions: {
-      poll: 1000
-  }
-}))
+	app = app.use(webpackDevMiddleware(compiler, {
+	  publicPath: webpackConfig.output.publicPath,
+	  watchOptions: {
+	      poll: 1000
+	  }
+	}))
+}
 
 /*
 This line for the static file server needs to come after
