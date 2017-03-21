@@ -56,10 +56,10 @@ export default class App extends Component {
 
 	renderD3 = () => {
 		let nodes = this.getNodes();
-		let links = this.getTagLinks(nodes);
+		let links = this.getTagLinks(nodes)
 
-		let width = window.innerWidth,
-	    height = window.innerHeight;
+		let width = window.innerWidth
+	    let height = window.innerHeight	    
 
 		let force = d3.layout.force()
 		    .nodes(nodes)
@@ -68,58 +68,56 @@ export default class App extends Component {
 		    .linkDistance(200)
 		    .charge(-500)
 		    .on("tick", tick)
-		    .start();
+		    .start()
 
 		let svg = d3.select("body").append("svg")
 		    .attr("width", width)
-		    .attr("height", height);
+		    .attr("height", height)
 
-		// Per-type markers, as they don't inherit styles.
-		svg.append("defs").selectAll("marker")
-		    .data(["suit", "licensing", "resolved"])
-		  .enter().append("marker")
-		    .attr("id", function(d) { return d; })
-		    .attr("viewBox", "0 -5 10 10")
-		    .attr("refX", 15)
-		    .attr("refY", -1.5)
-		    .attr("markerWidth", 6)
-		    .attr("markerHeight", 6)
-		    .attr("orient", "auto")
-		  .append("path")
-		    .attr("d", "M0,-5L10,0L0,5");
+		let emptyPathSelection = svg.append("g").attr("id", "edges").selectAll("path")
 
-		let path = svg.append("g").selectAll("path")
-		    .data(force.links())
-		  .enter().append("path")
-		    .attr("class", function(d) { return "link " + d.type; })
-		    .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
+		let virtualSelection = emptyPathSelection.data(force.links()).enter()
 
-		let circle = svg.append("g").selectAll("circle")
+		//append essentially creates a path object for each link
+		let edges = virtualSelection.append("path")
+		    .attr("class", function(edge) { return "edge " + edge.type; })
+
+		//Render Nodes
+		let nodesContainer = svg.append("g").attr("id", "nodes")
+		let nodeContainers = nodesContainer.selectAll("g")
 		    .data(force.nodes())
-		  .enter().append("circle")
+		  .enter().append("g").attr("class", "node-container")
+		  	.on('mouseover', function(d){
+			    $(this).toggleClass("highlight")
+			})
+			.on('mouseout', function(d){
+				$(this).toggleClass("highlight")
+			})
+
+		let nodeElements = nodeContainers.append("circle")
+		  	.attr("class", "node")
 		    .attr("r", 12)
-		    .call(force.drag);
+		    .call(force.drag)
 
-		let text = svg.append("g").selectAll("text")
-		    .data(force.nodes())
-		  .enter().append("text")
-		    .attr("x", 8)
+		let text = nodeContainers.append("text")
+		    .attr("x", 20)
 		    .attr("y", ".31em")
-		    .text(function(d) { return d.name+": "+d.tags.toString(); });
+		    .attr("class", function(d) { return "node-label " + d.type; })
+		    .text(function(d) { return d.name+": "+d.tags.toString() })
 
-		// Use elliptical arc path segments to doubly-encode directionality.
+		// All positions are encoded in the tick's transform
 		function tick() {
-		  path.attr("d", linkArc);
-		  circle.attr("transform", transform);
-		  text.attr("transform", transform);
+		  edges.attr("d", linkArc)
+		  nodeElements.attr("transform", transform)
+		  text.attr("transform", transform)
 		}
 
 		function linkArc(d) {		  
-		  return "M" + d.source.x + "," + d.source.y + 'L' + d.target.x + ',' + d.target.y;
+		  return "M" + d.source.x + "," + d.source.y + 'L' + d.target.x + ',' + d.target.y
 		}
 
 		function transform(d) {
-		  return "translate(" + d.x + "," + d.y + ")";
+		  return "translate(" + d.x + "," + d.y + ")"
 		}
 	}
 

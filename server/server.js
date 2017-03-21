@@ -11,8 +11,26 @@ let app = express()
 
 app.set('port', (process.env.PORT || 5000))
 
-app.use(express.static(path.join(__dirname, '../client/static') ))
 app.use(bodyParser.json())
+
+var webpackDevMiddleware = require("webpack-dev-middleware"),
+	webpack = require("webpack"),
+	webpackConfig = require("../webpack.config.js")
+
+var compiler = webpack(webpackConfig)
+
+app = app.use(webpackDevMiddleware(compiler, {
+  publicPath: webpackConfig.output.publicPath,
+  watchOptions: {
+      poll: 1000
+  }
+}))
+
+/*
+This line for the static file server needs to come after
+the webpack-dev-middleware setup
+*/
+app.use(express.static(path.join(__dirname, '../client/static') ))
 
 app.get('/api/data', function(req, res){
 	console.log('API ENDPOINT CALLED: /api/data ')
@@ -26,7 +44,7 @@ app.get('/api/data', function(req, res){
 			console.log("*	Found "+ docs.length + " matching records")			
 			res.send(docs)
 			db.close()
-		});
+		})
 	})
 
 })

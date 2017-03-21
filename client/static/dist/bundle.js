@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/static/";
+/******/ 	__webpack_require__.p = "/dist/";
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 506);
@@ -14342,34 +14342,42 @@ var App = function (_Component) {
 			var nodes = _this.getNodes();
 			var links = _this.getTagLinks(nodes);
 
-			var width = window.innerWidth,
-			    height = window.innerHeight;
+			var width = window.innerWidth;
+			var height = window.innerHeight;
 
 			var force = d3.layout.force().nodes(nodes).links(links).size([width, height]).linkDistance(200).charge(-500).on("tick", tick).start();
 
 			var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
 
-			// Per-type markers, as they don't inherit styles.
-			svg.append("defs").selectAll("marker").data(["suit", "licensing", "resolved"]).enter().append("marker").attr("id", function (d) {
-				return d;
-			}).attr("viewBox", "0 -5 10 10").attr("refX", 15).attr("refY", -1.5).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto").append("path").attr("d", "M0,-5L10,0L0,5");
+			var emptyPathSelection = svg.append("g").attr("id", "edges").selectAll("path");
 
-			var path = svg.append("g").selectAll("path").data(force.links()).enter().append("path").attr("class", function (d) {
-				return "link " + d.type;
-			}).attr("marker-end", function (d) {
-				return "url(#" + d.type + ")";
+			var virtualSelection = emptyPathSelection.data(force.links()).enter();
+
+			//append essentially creates a path object for each link
+			var edges = virtualSelection.append("path").attr("class", function (edge) {
+				return "edge " + edge.type;
 			});
 
-			var circle = svg.append("g").selectAll("circle").data(force.nodes()).enter().append("circle").attr("r", 12).call(force.drag);
+			//Render Nodes
+			var nodesContainer = svg.append("g").attr("id", "nodes");
+			var nodeContainers = nodesContainer.selectAll("g").data(force.nodes()).enter().append("g").attr("class", "node-container").on('mouseover', function (d) {
+				$(this).toggleClass("highlight");
+			}).on('mouseout', function (d) {
+				$(this).toggleClass("highlight");
+			});
 
-			var text = svg.append("g").selectAll("text").data(force.nodes()).enter().append("text").attr("x", 8).attr("y", ".31em").text(function (d) {
+			var nodeElements = nodeContainers.append("circle").attr("class", "node").attr("r", 12).call(force.drag);
+
+			var text = nodeContainers.append("text").attr("x", 20).attr("y", ".31em").attr("class", function (d) {
+				return "node-label " + d.type;
+			}).text(function (d) {
 				return d.name + ": " + d.tags.toString();
 			});
 
-			// Use elliptical arc path segments to doubly-encode directionality.
+			// All positions are encoded in the tick's transform
 			function tick() {
-				path.attr("d", linkArc);
-				circle.attr("transform", transform);
+				edges.attr("d", linkArc);
+				nodeElements.attr("transform", transform);
 				text.attr("transform", transform);
 			}
 
@@ -18669,7 +18677,7 @@ exports = module.exports = __webpack_require__(405)();
 
 
 // module
-exports.push([module.i, ".link {\n  fill: none;\n  stroke: #666;\n  stroke-width: 1.5px; }\n\n#licensing {\n  fill: green; }\n\n.link.licensing {\n  stroke: green; }\n\n.link.resolved {\n  stroke-dasharray: 0,2 1; }\n\ncircle {\n  fill: #ccc;\n  stroke: #333;\n  stroke-width: 1.5px; }\n\ntext {\n  font: 10px sans-serif;\n  pointer-events: none;\n  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }\n", ""]);
+exports.push([module.i, ".edge {\n  fill: none;\n  stroke: #000;\n  stroke-width: 1.5px; }\n\n.node-container {\n  width: 50px;\n  height: 50px; }\n  .node-container .node {\n    fill: #ccc;\n    stroke: none;\n    stroke-width: 1.5px; }\n  .node-container .node-label {\n    visibility: hidden; }\n  .node-container.highlight .node {\n    fill: #fff;\n    stroke: #000; }\n  .node-container.highlight .node-label {\n    visibility: visible; }\n\ntext {\n  font: 10px sans-serif;\n  pointer-events: none;\n  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }\n", ""]);
 
 // exports
 
