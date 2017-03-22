@@ -1,8 +1,8 @@
 /* global window */
 import React, { Component, PropTypes } from 'react'
 import axios from 'axios'
-import data from 'test-data.js'
-import styles from 'styles.scss'
+import Modal from 'modal.js'
+import styles from 'app.scss'
 
 const dataAPIEndpoint = '/api/data'
 
@@ -11,12 +11,27 @@ new p5()
 export default class App extends Component {
 	constructor(props) {
 		super(props)
-		this.state = {}
+		this.state = {
+			modalOpen: false,
+			currentNode: false
+		}
 	}
 
 	componentDidMount = () => {
 		this.getData()
-	}	
+	}
+
+	handleNodeClick = (node) => {
+		console.log("CLICK: ", node)
+		this.setState({
+			currentNode: node,
+			modalOpen: true
+		})
+	}
+
+	handleModalCloseButtonClick = () => {
+		this.setState({modalOpen: false})
+	}
 
 	getData = () => {
 		axios.get(dataAPIEndpoint).then((response)=>{
@@ -100,7 +115,7 @@ export default class App extends Component {
 		    .on("tick", tick)
 		    .start()
 
-		let svg = d3.select("body").append("svg")
+		let svg = d3.select("#svg-container-root").append("svg")
 			.attr("xmlns", "http://www.w3.org/2000/svg")
 		    .attr("width", width)
 		    .attr("height", height)
@@ -143,9 +158,12 @@ export default class App extends Component {
 			    	})
 		  	})
 
+		/*
+			For each node, provide a reference to 
+			the node conainer for immediate neighbors
+		*/
 		nodeContainers.each((d)=>{
-				console.log("hover node: ", d.name)
-				d.targetNodes = nodeContainers.filter(function(nodeContainer){
+				d.neighborNodes = nodeContainers.filter(function(nodeContainer){
 					let isNeighbor = false					
 					$.each(d.edgePaths, function(i,edgePath){						
 						if($(edgePath).attr('targetNode') == nodeContainer._id){
@@ -156,14 +174,19 @@ export default class App extends Component {
 					return isNeighbor
 				})
 			})
-		  	.on('mouseover', function(d){
+
+		/*
+			Setup hover states for each node, it's paths and neighbors
+			Setup click to open 
+		*/
+		nodeContainers.on('mouseover', function(d){
 			    $(this).toggleClass("highlight")
 			    $.each(d.edgePaths, (i,edgePath)=>{
 			    	$(edgePath).toggleClass("highlight")
 			    		.attr("stroke-linecap", "round")
 			    })
-			    $.each(d.targetNodes, (i,targetNode)=>{
-			    	$(targetNode).toggleClass("lowlight")
+			    $.each(d.neighborNodes, (i,neighbor)=>{
+			    	$(neighbor).toggleClass("lowlight")
 			    })
 			})
 			.on('mouseout', function(d){
@@ -172,15 +195,19 @@ export default class App extends Component {
 			    	$(edgePath).toggleClass("highlight")
 			    		.attr("stroke-linecap", "square")
 			    })
-			    $.each(d.targetNodes, (i,targetNode)=>{
-			    	$(targetNode).toggleClass("lowlight")
+			    $.each(d.neighborNodes, (i,neighbor)=>{
+			    	$(neighbor).toggleClass("lowlight")
 			    })
+			})
+			.on('click', (d)=>{
+				this.handleNodeClick(d)
 			})
 
 		let nodeElements = nodeContainers.append("circle")
 		  	.attr("class", "node")
 		    .attr("r", 12)
 		    .call(force.drag)
+
 
 		let labels = nodeContainers.append("text")
 		    .attr("x", 20)
@@ -194,14 +221,14 @@ export default class App extends Component {
 		    .attr("width", 500)
 		    .attr("height", 50)
 		    .attr("class", "details")
+		    .attr("id", (d)=>`node-FO-${d._id}`)
 
 		let detailsInner = details.append(function(d){	
 		    	let container = $("<div></div>")
 		    	$.each(d.tags, (i,tag)=>container.append($(`
 		    		<span class="tag-container" style="background-color:${tag.color}"><span>${tag.name}</span></span>
 		    	`)) )
-		    	container.attr("xmlns","http://www.w3.org/1999/xhtml")
-		    	return container[0]
+		    	return container[0]		    	
 		    })
 			.attr("x", 0)
 		    .attr("y", 0)
@@ -228,9 +255,31 @@ export default class App extends Component {
 		if(this.state.data){
 			this.renderD3()
 		}
-		return(
-			<div>
+		if(this.state.currentNode){
+			return(
+			<div className={styles['container']}>
+				<Modal className={`${styles['modal']}`} open={this.state.modalOpen}>
+					<div className={`${styles['modal-header']}`}>
+						<div className={`${styles['title']}`}>
+							<div className={`${styles['name']}`}>{this.state.currentNode.name}</div>
+							<div className={`${styles['role']}`}>{this.state.currentNode.role}</div>
+						</div>						
+						<button onClick={this.handleModalCloseButtonClick} className={`${styles['close-button']}`}>
+							<span className={`glyphicon glyphicon-remove-sign`} ></span>
+						</button>
+					</div>
+					<div className={`${styles['modal-content']}`}>
+						<p>
+							{this.state.currentNode.notes}
+						</p>
+					</div>
+					<div className={`${styles['modal-footer']}`}></div>
+				</Modal>
 			</div>
-		)
+			)
+		}
+		else{
+			return <div></div>
+		}
 	}    
 }

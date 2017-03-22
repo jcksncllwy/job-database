@@ -1,0 +1,141 @@
+:global{
+	body{
+		margin: 0;
+	}
+
+	#svg-container-root{
+		position: absolute;
+	}
+
+	#defaultCanvas0{
+		display: none;
+	}
+
+	.edge {
+	  fill: none;
+	  stroke: #000;
+	  stroke-width: 1.5px;
+	  &.highlight{
+	  	stroke-width: 6px;
+	  }
+	}
+
+	.node-container{
+		width: 50px;
+		height: 50px;
+		cursor: pointer;
+
+		.node {
+		  fill: #ccc;
+		  stroke: none;
+		  stroke-width: 1.5px;
+		}
+
+		.node-label{
+			font-size: 12px;
+		}
+
+		.details{
+			visibility: hidden;
+			.tag-container {
+				padding: 2px 10px 5px 10px;
+				margin-right: 5px;
+				border-radius: 5px;
+				span{
+					font-size: 10px;
+					color: #fff;
+					text-shadow: 1px 1px 2px black; 
+				}
+			}
+		}	
+
+		&.highlight{
+			.node{
+				fill: #fff;
+		  		stroke: #000;
+			}
+			.node-label{
+				font-size: 16px;
+			}
+			.details{
+				visibility: visible;
+			}			
+		}
+
+		&.lowlight{
+			.node{
+				fill: #fff;
+		  		stroke: #000;		  		
+			}
+
+			.node-label{
+				font-size: 14px;
+			}			
+		}
+	}
+
+	text {
+	  font: 10px sans-serif;
+	  pointer-events: none;
+	  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+	}
+}
+
+:local{
+	.modal{
+		width: 500px;
+		height: 500px;
+		display: flex;
+	    flex-direction: column;
+	    justify-content: space-between;
+	    align-items: center;
+	}
+
+	.close-button{
+	    position: absolute;
+	    top: 10px;
+	    right: 10px;
+	    background-color: transparent;
+	    border: none;
+	}
+
+	.modal-header{
+		position: relative;
+		background-color: #eaeaea;
+		padding: 10px;
+		border-radius: 10px 10px 0 0;
+		width: 100%;
+
+		.title{
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+		}
+
+		.name{
+			font-size: 18px;
+		}
+		.role{
+			font-size: 16px;
+		}
+	}
+
+	.modal-content{
+		background-color: #fff;
+	}
+
+	.modal-footer{
+		border-radius: 0 0 10px 10px;
+		background-color: #eaeaea;
+		height: 50px;
+		width: 100%;
+	}
+}
+
+
+
+
+
+
+
