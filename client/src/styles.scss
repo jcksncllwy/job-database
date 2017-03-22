@@ -7,6 +7,9 @@
 	  fill: none;
 	  stroke: #000;
 	  stroke-width: 1.5px;
+	  &.highlight{
+	  	stroke-width: 6px;
+	  }
 	}
 
 	.node-container{
@@ -17,7 +20,7 @@
 		  fill: #ccc;
 		  stroke: none;
 		  stroke-width: 1.5px;
-		}	
+		}
 
 		.details{
 			visibility: hidden;
@@ -43,6 +46,17 @@
 			}
 			.details{
 				visibility: visible;
+			}			
+		}
+
+		&.lowlight{
+			.node{
+				fill: #fff;
+		  		stroke: #000;		  		
+			}
+
+			.node-label{
+				font-size: 0.8em;
 			}			
 		}
 	}	

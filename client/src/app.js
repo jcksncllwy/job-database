@@ -45,23 +45,35 @@ export default class App extends Component {
 	getTagLinks = (data) => {
 		var links = [];
 		for(var i in data){
-			var iData = data[i];
+			var iData = data[i]
+			if(!iData.edges){
+				iData.edges = []
+			}
 			for(var j in data){
-				var jData = data[j];
-				if(jData._id==iData._id){
-					break;
-				}
-				for(var q in iData.tags){
-					var iTag = iData.tags[q];
-					for(var p in jData.tags){
-						var jTag = jData.tags[p];
-						if(iTag.name == jTag.name){
-							links.push({
-								"source": Number.parseInt(i),
-								"target": Number.parseInt(j),
-								"type": 'tag',
-								"tag": iTag
-							})
+				var jData = data[j]
+				if(jData._id!==iData._id){
+					if(!jData.edges){
+						jData.edges = []
+					}
+					
+					for(var q in iData.tags){
+						var iTag = iData.tags[q]
+						for(var p in jData.tags){
+							var jTag = jData.tags[p]
+							if(iTag.name == jTag.name){
+								let link = {
+									"_id": `${iData._id}-=>${jData._id}`,
+									"source": Number.parseInt(i),
+									"target": Number.parseInt(j),
+									"sourceNode": iData,
+									"targetNode": jData,
+									"type": 'tag',
+									"tag": iTag,
+								}
+								links.push(link)
+								iData.edges.push(link)
+								jData.edges.push(link)
+							}
 						}
 					}
 				}
@@ -73,7 +85,7 @@ export default class App extends Component {
 	getNodes = () => this.state.data
 
 	renderD3 = () => {
-		let nodes = this.getNodes();
+		let nodes = this.getNodes()
 		let links = this.getTagLinks(nodes)
 
 		let width = window.innerWidth
@@ -107,17 +119,62 @@ export default class App extends Component {
 		let edges = virtualSelection.append("path")
 		    .attr("class", function(edge) { return "edge " + edge.type; })
 		    .attr("style", function(edge) { return `stroke:${edge.tag.color}`})
+		    .attr("sourceNode", (edge)=>edge.sourceNode._id)
+		    .attr("targetNode", (edge)=>edge.targetNode._id)		    
 
-		//Render Nodes
+		
 		let nodesContainer = svg.append("g").attr("id", "nodes")
+
+		/*
+			Create containers for each node
+			Setup each node datum with references to all of it's edge paths
+		*/
 		let nodeContainers = nodesContainer.selectAll("g")
 		    .data(force.nodes())
 		  .enter().append("g").attr("class", "node-container")
+		  	.attr("_id", (d)=>d._id)
+		  	.each((d)=>{
+		  		edges.filter((edgeDatum)=>edgeDatum.sourceNode._id == d._id)
+			    	.each(function(edgeDatum){
+			    		if(!d.edgePaths){
+			    			d.edgePaths = []
+			    		}
+			    		d.edgePaths.push(this)			    		
+			    	})
+		  	})
+
+		nodeContainers.each((d)=>{
+				console.log("hover node: ", d.name)
+				d.targetNodes = nodeContainers.filter(function(nodeContainer){
+					let isNeighbor = false					
+					$.each(d.edgePaths, function(i,edgePath){						
+						if($(edgePath).attr('targetNode') == nodeContainer._id){
+							isNeighbor = true
+							return false //break each loop
+						}
+					})
+					return isNeighbor
+				})
+			})
 		  	.on('mouseover', function(d){
 			    $(this).toggleClass("highlight")
+			    $.each(d.edgePaths, (i,edgePath)=>{
+			    	$(edgePath).toggleClass("highlight")
+			    		.attr("stroke-linecap", "round")
+			    })
+			    $.each(d.targetNodes, (i,targetNode)=>{
+			    	$(targetNode).toggleClass("lowlight")
+			    })
 			})
 			.on('mouseout', function(d){
 				$(this).toggleClass("highlight")
+				$.each(d.edgePaths, (i,edgePath)=>{
+			    	$(edgePath).toggleClass("highlight")
+			    		.attr("stroke-linecap", "square")
+			    })
+			    $.each(d.targetNodes, (i,targetNode)=>{
+			    	$(targetNode).toggleClass("lowlight")
+			    })
 			})
 
 		let nodeElements = nodeContainers.append("circle")
@@ -151,18 +208,18 @@ export default class App extends Component {
 
 		// All positions are encoded in the tick's transform
 		function tick() {
-		  edges.attr("d", linkArc)
-		  nodeElements.attr("transform", transform)
-		  labels.attr("transform", transform)
-		  details.attr("transform", transform)
-		  detailsInner.attr("transform", transform)
+		  edges.attr("d", edgeLine)
+		  nodeElements.attr("transform", position)
+		  labels.attr("transform", position)
+		  details.attr("transform", position)
+		  detailsInner.attr("transform", position)
 		}
 
-		function linkArc(d) {		  
-		  return "M" + d.source.x + "," + d.source.y + 'L' + d.target.x + ',' + d.target.y
+		function edgeLine(d) {
+		  return "M" + d.source.x + "," + d.source.y + 'L' + d.target.x + ',' + d.target.y		
 		}
 
-		function transform(d) {
+		function position(d) {
 		  return "translate(" + d.x + "," + d.y + ")"
 		}
 	}

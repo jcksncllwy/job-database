@@ -14328,22 +14328,34 @@ var App = function (_Component) {
 			var links = [];
 			for (var i in data) {
 				var iData = data[i];
+				if (!iData.edges) {
+					iData.edges = [];
+				}
 				for (var j in data) {
 					var jData = data[j];
-					if (jData._id == iData._id) {
-						break;
-					}
-					for (var q in iData.tags) {
-						var iTag = iData.tags[q];
-						for (var p in jData.tags) {
-							var jTag = jData.tags[p];
-							if (iTag.name == jTag.name) {
-								links.push({
-									"source": Number.parseInt(i),
-									"target": Number.parseInt(j),
-									"type": 'tag',
-									"tag": iTag
-								});
+					if (jData._id !== iData._id) {
+						if (!jData.edges) {
+							jData.edges = [];
+						}
+
+						for (var q in iData.tags) {
+							var iTag = iData.tags[q];
+							for (var p in jData.tags) {
+								var jTag = jData.tags[p];
+								if (iTag.name == jTag.name) {
+									var link = {
+										"_id": iData._id + '-=>' + jData._id,
+										"source": Number.parseInt(i),
+										"target": Number.parseInt(j),
+										"sourceNode": iData,
+										"targetNode": jData,
+										"type": 'tag',
+										"tag": iTag
+									};
+									links.push(link);
+									iData.edges.push(link);
+									jData.edges.push(link);
+								}
 							}
 						}
 					}
@@ -14378,14 +14390,59 @@ var App = function (_Component) {
 				return "edge " + edge.type;
 			}).attr("style", function (edge) {
 				return 'stroke:' + edge.tag.color;
+			}).attr("sourceNode", function (edge) {
+				return edge.sourceNode._id;
+			}).attr("targetNode", function (edge) {
+				return edge.targetNode._id;
 			});
 
-			//Render Nodes
 			var nodesContainer = svg.append("g").attr("id", "nodes");
-			var nodeContainers = nodesContainer.selectAll("g").data(force.nodes()).enter().append("g").attr("class", "node-container").on('mouseover', function (d) {
+
+			/*
+   	Create containers for each node
+   	Setup each node datum with references to all of it's edge paths
+   */
+			var nodeContainers = nodesContainer.selectAll("g").data(force.nodes()).enter().append("g").attr("class", "node-container").attr("_id", function (d) {
+				return d._id;
+			}).each(function (d) {
+				edges.filter(function (edgeDatum) {
+					return edgeDatum.sourceNode._id == d._id;
+				}).each(function (edgeDatum) {
+					if (!d.edgePaths) {
+						d.edgePaths = [];
+					}
+					d.edgePaths.push(this);
+				});
+			});
+
+			nodeContainers.each(function (d) {
+				console.log("hover node: ", d.name);
+				d.targetNodes = nodeContainers.filter(function (nodeContainer) {
+					var isNeighbor = false;
+					$.each(d.edgePaths, function (i, edgePath) {
+						if ($(edgePath).attr('targetNode') == nodeContainer._id) {
+							isNeighbor = true;
+							return false; //break each loop
+						}
+					});
+					return isNeighbor;
+				});
+			}).on('mouseover', function (d) {
 				$(this).toggleClass("highlight");
+				$.each(d.edgePaths, function (i, edgePath) {
+					$(edgePath).toggleClass("highlight").attr("stroke-linecap", "round");
+				});
+				$.each(d.targetNodes, function (i, targetNode) {
+					$(targetNode).toggleClass("lowlight");
+				});
 			}).on('mouseout', function (d) {
 				$(this).toggleClass("highlight");
+				$.each(d.edgePaths, function (i, edgePath) {
+					$(edgePath).toggleClass("highlight").attr("stroke-linecap", "square");
+				});
+				$.each(d.targetNodes, function (i, targetNode) {
+					$(targetNode).toggleClass("lowlight");
+				});
 			});
 
 			var nodeElements = nodeContainers.append("circle").attr("class", "node").attr("r", 12).call(force.drag);
@@ -14409,18 +14466,18 @@ var App = function (_Component) {
 
 			// All positions are encoded in the tick's transform
 			function tick() {
-				edges.attr("d", linkArc);
-				nodeElements.attr("transform", transform);
-				labels.attr("transform", transform);
-				details.attr("transform", transform);
-				detailsInner.attr("transform", transform);
+				edges.attr("d", edgeLine);
+				nodeElements.attr("transform", position);
+				labels.attr("transform", position);
+				details.attr("transform", position);
+				detailsInner.attr("transform", position);
 			}
 
-			function linkArc(d) {
+			function edgeLine(d) {
 				return "M" + d.source.x + "," + d.source.y + 'L' + d.target.x + ',' + d.target.y;
 			}
 
-			function transform(d) {
+			function position(d) {
 				return "translate(" + d.x + "," + d.y + ")";
 			}
 		};
@@ -18712,7 +18769,7 @@ exports = module.exports = __webpack_require__(405)();
 
 
 // module
-exports.push([module.i, "#defaultCanvas0 {\n  display: none; }\n\n.edge {\n  fill: none;\n  stroke: #000;\n  stroke-width: 1.5px; }\n\n.node-container {\n  width: 50px;\n  height: 50px; }\n  .node-container .node {\n    fill: #ccc;\n    stroke: none;\n    stroke-width: 1.5px; }\n  .node-container .details {\n    visibility: hidden; }\n    .node-container .details .tag-container {\n      padding: 2px 10px 5px 10px;\n      margin-right: 5px;\n      border-radius: 5px; }\n      .node-container .details .tag-container span {\n        font-size: 0.8em;\n        color: #fff;\n        text-shadow: 1px 1px 2px black; }\n  .node-container.highlight .node {\n    fill: #fff;\n    stroke: #000; }\n  .node-container.highlight .node-label {\n    font-size: 1em; }\n  .node-container.highlight .details {\n    visibility: visible; }\n\ntext {\n  font: 10px sans-serif;\n  pointer-events: none;\n  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }\n", ""]);
+exports.push([module.i, "#defaultCanvas0 {\n  display: none; }\n\n.edge {\n  fill: none;\n  stroke: #000;\n  stroke-width: 1.5px; }\n  .edge.highlight {\n    stroke-width: 6px; }\n\n.node-container {\n  width: 50px;\n  height: 50px; }\n  .node-container .node {\n    fill: #ccc;\n    stroke: none;\n    stroke-width: 1.5px; }\n  .node-container .details {\n    visibility: hidden; }\n    .node-container .details .tag-container {\n      padding: 2px 10px 5px 10px;\n      margin-right: 5px;\n      border-radius: 5px; }\n      .node-container .details .tag-container span {\n        font-size: 0.8em;\n        color: #fff;\n        text-shadow: 1px 1px 2px black; }\n  .node-container.highlight .node {\n    fill: #fff;\n    stroke: #000; }\n  .node-container.highlight .node-label {\n    font-size: 1em; }\n  .node-container.highlight .details {\n    visibility: visible; }\n  .node-container.lowlight .node {\n    fill: #fff;\n    stroke: #000; }\n  .node-container.lowlight .node-label {\n    font-size: 0.5em; }\n\ntext {\n  font: 10px sans-serif;\n  pointer-events: none;\n  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }\n", ""]);
 
 // exports
 
